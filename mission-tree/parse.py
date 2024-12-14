@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Callable, Optional
 
 
 class ParseError(ValueError):
@@ -18,7 +19,7 @@ def parse(file: str):
 
     lines = preprocess_lines(lines)
     block_data = split_into_blocks(lines)
-    blocks = [parse_block(block) for block in block_data]
+    blocks = [parse_block_to_nodes(block) for block in block_data]
     return blocks
 
 def preprocess_lines(
@@ -67,22 +68,63 @@ def parse_block_header(header: tuple[int, int, str]) -> tuple[BlockType, list[st
     block_type = BlockType(block_type)
     return block_type, tags
 
+class ParserNode:
+    line_data: tuple[int, str]
+    """
+    line_number, line_text
+    """
+    children: list["ParserNode"]
+    """
+    List of child ParserNodes
+    """
+    def __init__(self, line_data: tuple[int, str], children: list["ParserNode"], parent: Optional["ParserNode"] = None):
+        self.line_data = line_data
+        self.children = children
+        self.parent = parent
 
-def parse_block(block: list[tuple[int, int, str]]):
+def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
+    """
+    Block is a list of tuples in the form of (line_number, num_tabs, line)
+
+    Returns a tree of ParserNodes
+    """
+    block_type, tags = parse_block_header(block[0])
+    root = ParserNode((block[0][0], block[0][2]), [])
+    current_node = root
+    current_depth = 1
+    for line in block[1:]:
+        assert isinstance(current_node, ParserNode)
+        line_number, num_tabs, line_text = line
+        if num_tabs > current_depth:
+            current_node = current_node.children[-1]
+        elif num_tabs < current_depth:
+            for _ in range(current_depth - num_tabs):
+                assert current_node.parent is not None
+                current_node = current_node.parent
+        current_node.children.append(ParserNode((line_number, line_text), [], current_node))
+        current_depth = num_tabs
+
+
+
+def parse_node(block: list[tuple[int, int, str]]):
     """
     Block is a list of tuples in the form of (line_number, num_tabs, line)
     """
     header = block[0]
     block_type, tags = parse_block_header(header)
 
-    parser_map = {
-        BlockType.MISSION: lambda x: None,
+    parser_map: dict[BlockType, Callable[[list[tuple[int, int, str]], list[str], int], None]] = {
+        BlockType.MISSION: parse_mission
     }
     if block_type in parser_map:
-        parser_map[block_type](block)
+        parser_map[block_type](block[1:], tags, header[0])
     else:
-        raise ParseError(f"Parser not implemented for block type: {block_type}")
-    print(block_type, tags)
+        pass
+        # raise ParseError(f"Parser not implemented for block type: {block_type}")
+
+def parse_mission(block_contents: list[tuple[int, int, str]], tags: list[str], start_line: int):
+    assert len(tags) == 1, f"Invalid number of tags for mission: {tags} on line {start_line}"
+    pass
 
 
 if __name__ == "__main__":
