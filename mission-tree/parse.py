@@ -151,6 +151,7 @@ class Has:
 
 class ToOffer:
     has: Optional[Has]
+
     def __init__(self):
         self.has = None
         pass
@@ -165,6 +166,7 @@ class Mission:
     def __init__(self):
         pass
 
+
 def parse_has(node: ParserNode) -> Has:
     field, tags = parse_line(node.line)
     assert field == "has"
@@ -176,7 +178,7 @@ def parse_on_offer(node: ParserNode) -> ToOffer:
     res = ToOffer()
     for child in node.children:
         field, tags = parse_line(child.line)
-        if field == 'has':
+        if field == "has":
             res.has = parse_has(child)
         print(field, tags)
     return res
