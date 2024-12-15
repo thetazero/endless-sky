@@ -17,6 +17,7 @@ class BlockType(Enum):
     EVENT = "event"
     SHIP = "ship"
 
+
 class FieldTag(Enum):
     DESCRIPTION = "description"
     EVENT = "event"
@@ -24,7 +25,7 @@ class FieldTag(Enum):
     NAME = "name"
     ON_OFFER = "on offer"
     SHIP = "ship"
-    SHIPYARD = "shipyard"   
+    SHIPYARD = "shipyard"
     SOURCE = "source"
     TO_OFFER = "to offer"
     WAYPOINT = "waypoint"
@@ -33,14 +34,18 @@ class FieldTag(Enum):
     HAS = "has"
     ON_COMPLETE = "on complete"
     PAYMENT = "payment"
+    CONVERSATION = "conversation"
 
 
 def parse(file: str):
     with open(file, "r") as f:
         lines = f.readlines()
+    return parse_lines(lines)
 
-    lines = preprocess_lines(lines)
-    block_data = split_into_blocks(lines)
+
+def parse_lines(lines: list[str]):
+    processed_lines = preprocess_lines(lines)
+    block_data = split_into_blocks(processed_lines)
     blocks = [parse_block_to_nodes(block) for block in block_data]
     blocks = [parse_node(node) for node in blocks]
     return blocks
@@ -156,14 +161,21 @@ def parse_node(block: ParserNode):
         # raise ParseError(f"Parser not implemented for block type: {block_type}")
 
 
-class Has:
-    condition: str
+class Event:
+    id: str
 
-    def __init__(self, condition: str):
-        self.condition = condition
+    def __init__(self, id: str):
+        self.id = id
+
+
+class Has:
+    event: Event
+
+    def __init__(self, event: Event):
+        self.event = event
 
     def __str__(self) -> str:
-        return f"<Has: {self.condition}>"
+        return f"<Has: {self.event}>"
 
 
 class ToOffer:
@@ -177,21 +189,23 @@ class ToOffer:
         return f"<ToOffer has: {self.has}>"
 
 
-class OnComplete:
-
-    def __init__(self):
-        pass
-
-    def __str__(self) -> str:
-        return f"<OnComplete>"
-
-
 class Payment:
 
     amount: int
 
     def __init__(self, amount: int):
         self.amount = amount
+
+
+class OnComplete:
+    payment: Optional[Payment]
+    events: list[Event] = []
+
+    def __init__(self):
+        pass
+
+    def __str__(self) -> str:
+        return f"<OnComplete>"
 
 
 class Mission:
@@ -201,13 +215,15 @@ class Mission:
 
     def __init__(self, id: str):
         self.id = id
+        self.on_complete = None
 
 
 def parse_has(node: ParserNode) -> Has:
     field, tags = parse_line(node.line)
     assert field == FieldTag.HAS
     assert len(tags) == 1
-    return Has(tags[0])
+    event = Event(tags[0])
+    return Has(event)
 
 
 def parse_on_offer(node: ParserNode) -> ToOffer:
@@ -219,13 +235,21 @@ def parse_on_offer(node: ParserNode) -> ToOffer:
     return res
 
 
+def parse_payment(node: ParserNode) -> Payment:
+    field, tags = parse_line(node.line)
+    assert field == FieldTag.PAYMENT
+    assert len(tags) == 1
+    return Payment(int(tags[0]))
+
+
 def parse_on_complete(node: ParserNode) -> OnComplete:
     res = OnComplete()
     for child in node.children:
         field, tags = parse_line(child.line)
-        print(field, tags)
         if field == FieldTag.PAYMENT:
-            pass
+            res.payment = parse_payment(child)
+        elif field == None:
+            res.events.append(Event(tags[0]))
     return res
 
 
@@ -258,7 +282,7 @@ def parse_line(line: LineText) -> tuple[Optional[FieldTag], list[str]]:
                 tags = []
             else:
                 tags = [tag for tag in tags if tag.strip() != ""]
-            return field, tags 
+            return field, tags
     return None, [line.text]
 
 
