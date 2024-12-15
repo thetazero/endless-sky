@@ -128,11 +128,10 @@ def parse_node(block: ParserNode):
     Block is a list of tuples in the form of (line_number, num_tabs, line)
     """
     block_type, tags = parse_block_header(block.line)
-    print(block_type, tags)
 
-    parser_map: dict[BlockType, Callable[[list[ParserNode], list[str], int], None]] = {
-        BlockType.MISSION: parse_mission
-    }
+    parser_map: dict[
+        BlockType, Callable[[list[ParserNode], list[str], int], Mission]
+    ] = {BlockType.MISSION: parse_mission}
     if block_type in parser_map:
         parser_map[block_type](block.children, tags, block.line.line)
     else:
@@ -140,14 +139,63 @@ def parse_node(block: ParserNode):
         # raise ParseError(f"Parser not implemented for block type: {block_type}")
 
 
+class Has:
+    condition: str
+
+    def __init__(self, condition: str):
+        self.condition = condition
+
+    def __str__(self) -> str:
+        return f"<Has: {self.condition}>"
+
+
+class ToOffer:
+    has: Optional[Has]
+    def __init__(self):
+        self.has = None
+        pass
+
+    def __str__(self) -> str:
+        return f"<ToOffer has: {self.has}>"
+
+
+class Mission:
+    to_offer: ToOffer
+
+    def __init__(self):
+        pass
+
+def parse_has(node: ParserNode) -> Has:
+    field, tags = parse_line(node.line)
+    assert field == "has"
+    assert len(tags) == 1
+    return Has(tags[0])
+
+
+def parse_on_offer(node: ParserNode) -> ToOffer:
+    res = ToOffer()
+    for child in node.children:
+        field, tags = parse_line(child.line)
+        if field == 'has':
+            res.has = parse_has(child)
+        print(field, tags)
+    return res
+
+
 def parse_mission(children: list[ParserNode], tags: list[str], start_line: int):
     assert (
         len(tags) == 1
     ), f"Invalid number of tags for mission: {tags} on line {start_line}"
+    res = Mission()
     for child in children:
         field, tags = parse_line(child.line)
-        print(field, tags)
-    pass
+        if field == "to offer":
+            res.to_offer = parse_on_offer(child)
+            print(res.to_offer)
+        else:
+            pass
+
+    return res
 
 
 def parse_line(line: LineText) -> tuple[str, list[str]]:
