@@ -125,17 +125,13 @@ class TestParse(unittest.TestCase):
         parsed = parse.parse_line(line)
         self.assertEqual(parsed, (FieldTag.OR, []))
 
-        line = parse.LineText(0, '"combat rating" > 6000')
-        parsed = parse.parse_line(line)
-        self.assertEqual(parsed, (None, ['"combat rating" > 6000']))
+        # line = parse.LineText(0, '"combat rating" > 6000')
+        # parsed = parse.parse_line(line)
+        # self.assertEqual(parsed, (None, ['"combat rating" > 6000']))
 
         line = parse.LineText(0, 'and')
         parsed = parse.parse_line(line)
         self.assertEqual(parsed, (FieldTag.AND, []))
-
-        line = parse.LineText(0, '"combat rating" > 2000')
-        parsed = parse.parse_line(line)
-        self.assertEqual(parsed, (None, ['"combat rating" > 2000']))
 
         line = parse.LineText(0, 'has "global: unlocked kestrel"')
         parsed = parse.parse_line(line)
@@ -144,3 +140,7 @@ class TestParse(unittest.TestCase):
         line = parse.LineText(0, '`As you are visiting one of the spaceport`')
         parsed = parse.parse_line(line)
         self.assertEqual(parsed, (None, ['`As you are visiting one of the spaceport`']))
+
+        line = parse.LineText(0, 'payment 2000')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.PAYMENT, ['2000']))

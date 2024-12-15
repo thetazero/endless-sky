@@ -250,12 +250,16 @@ def parse_line(line: LineText) -> tuple[Optional[FieldTag], list[str]]:
     for tag in FieldTag:
         if line.text.startswith(tag.value):
             field = tag
-            tags = line.text.split('"')[1:]
-            tags = [tag for tag in tags if tag.strip() != ""]
+            remaining = line.text[len(tag.value) + 1 :]
+            tags = remaining.split('"')[1:]
+            if len(tags) == 0 and remaining.strip() != "":
+                tags = [remaining]
+            elif len(tags) == 0:
+                tags = []
+            else:
+                tags = [tag for tag in tags if tag.strip() != ""]
             return field, tags 
-    tags = line.text.split('"')[1:]
-    tags = [tag for tag in tags if tag.strip() != ""]
-    return None, tags
+    return None, [line.text]
 
 
 def parse_block_header(header: LineText) -> tuple[BlockType, list[str]]:
