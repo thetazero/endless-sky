@@ -33,7 +33,12 @@ def preprocess_lines(
     for i, line in enumerate(lines):
         if line.startswith("#") or line.strip() == "":
             continue
-        num_tabs = line.count("\t")
+        num_tabs = 0
+        for s in line:
+            if s == "\t":
+                num_tabs+=1
+            else:
+                break
         data.append((i, num_tabs, line.strip()))
     return data
 
@@ -77,10 +82,12 @@ class ParserNode:
     """
     List of child ParserNodes
     """
-    def __init__(self, line_data: tuple[int, str], children: list["ParserNode"], parent: Optional["ParserNode"] = None):
+    def __init__(self, line_data: tuple[int, str], children: list["ParserNode"], depth: int, parent: Optional["ParserNode"] = None):
         self.line_data = line_data
         self.children = children
         self.parent = parent
+        self.depth = depth
+        assert all([child.depth == depth-1 for child in children]), "All children must have 1 less depth"
 
 def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
     """
@@ -89,7 +96,7 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
     Returns a tree of ParserNodes
     """
     block_type, tags = parse_block_header(block[0])
-    root = ParserNode((block[0][0], block[0][2]), [])
+    root = ParserNode((block[0][0], block[0][2]), [], block[0][1])
     current_node = root
     current_depth = 1
     for line in block[1:]:
@@ -101,7 +108,7 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
             for _ in range(current_depth - num_tabs):
                 assert current_node.parent is not None
                 current_node = current_node.parent
-        current_node.children.append(ParserNode((line_number, line_text), [], current_node))
+        current_node.children.append(ParserNode((line_number, line_text), [], num_tabs, parent=current_node))
         current_depth = num_tabs
 
 
