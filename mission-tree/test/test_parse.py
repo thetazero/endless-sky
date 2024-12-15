@@ -83,10 +83,10 @@ class TestParse(unittest.TestCase):
         )
 
     def test_parse_header(self):
-        header = (1, 0, 'mission "Kestrel: More Weapons"')
+        header = parse.LineText(1, 'mission "Kestrel: More Weapons"')
         parsed = parse.parse_block_header(header)
         self.assertEqual(parsed, (parse.BlockType.MISSION, ["Kestrel: More Weapons"]))
 
-        header = (12, 0, 'ship "Kestrel" "Kestrel (More Weapons)"')
+        header = parse.LineText(12, 'ship "Kestrel" "Kestrel (More Weapons)"')
         parsed = parse.parse_block_header(header)
         self.assertEqual(parsed, (parse.BlockType.SHIP, ["Kestrel", "Kestrel (More Weapons)"]))

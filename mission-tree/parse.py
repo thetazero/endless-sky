@@ -1,5 +1,9 @@
 from enum import Enum
-from typing import Callable, Optional
+from typing import Callable, Optional, NamedTuple
+
+class LineText(NamedTuple):
+    line: int
+    text: str
 
 
 class ParseError(ValueError):
@@ -20,6 +24,7 @@ def parse(file: str):
     lines = preprocess_lines(lines)
     block_data = split_into_blocks(lines)
     blocks = [parse_block_to_nodes(block) for block in block_data]
+    blocks = [parse_node(node) for node in blocks]
     return blocks
 
 def preprocess_lines(
@@ -59,22 +64,21 @@ def split_into_blocks(data: list[tuple[int, int, str]]) -> list[list[tuple[int, 
     return blocks
 
 
-def parse_block_header(header: tuple[int, int, str]) -> tuple[BlockType, list[str]]:
+def parse_block_header(header: LineText) -> tuple[BlockType, list[str]]:
     """
     Parses the header of a block
     Format: block_type "block_name"
     or block_type "block_name" "block_description"
     """
-    line_number, _, header_text = header
-    block_type = header_text.split(" ")[0]
-    tags = header_text.split("\"")[1:]
+    block_type = header.text.split(" ")[0]
+    tags = header.text.split("\"")[1:]
     assert block_type in [b.value for b in BlockType], f"Invalid block type: {block_type} on line {line_number}"
     tags = [tag for tag in tags if tag.strip() != ""]
     block_type = BlockType(block_type)
     return block_type, tags
 
 class ParserNode:
-    line_data: tuple[int, str]
+    line: LineText
     """
     line_number, line_text
     """
@@ -82,15 +86,15 @@ class ParserNode:
     """
     List of child ParserNodes
     """
-    def __init__(self, line_data: tuple[int, str], children: list["ParserNode"], depth: int, parent: Optional["ParserNode"] = None):
-        self.line_data = line_data
+    def __init__(self, line_data: LineText, children: list["ParserNode"], depth: int, parent: Optional["ParserNode"] = None):
+        self.line = line_data
         self.children = children
         self.parent = parent
         self.depth = depth
         assert all([child.depth == depth-1 for child in children]), "All children must have 1 less depth"
     
     def __str__(self) -> str:
-        return f"<ParserNode: {self.line_data} [{len(self.children)}]>"
+        return f"<ParserNode: {self.line} [{len(self.children)}]>"
 
 def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
     """
@@ -98,7 +102,7 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
 
     Returns a tree of ParserNodes
     """
-    root = ParserNode((block[0][0], block[0][2]), [], block[0][1])
+    root = ParserNode(LineText(block[0][0], block[0][2]), [], block[0][1])
     current_node = root
     current_depth = 1
     for line in block[1:]:
@@ -110,39 +114,30 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
             for _ in range(current_depth - num_tabs):
                 assert current_node.parent is not None
                 current_node = current_node.parent
-        current_node.children.append(ParserNode((line_number, line_text), [], num_tabs, parent=current_node))
+        current_node.children.append(ParserNode(LineText(line_number, line_text), [], num_tabs, parent=current_node))
         current_depth = num_tabs
     return root
 
-
-
-def parse_node(block: list[tuple[int, int, str]]):
+def parse_node(block: ParserNode):
     """
     Block is a list of tuples in the form of (line_number, num_tabs, line)
     """
-    header = block[0]
-    block_type, tags = parse_block_header(header)
+    block_type, tags = parse_block_header(block.line)
+    print(block_type, tags)
 
-    parser_map: dict[BlockType, Callable[[list[tuple[int, int, str]], list[str], int], None]] = {
+    parser_map: dict[BlockType, Callable[[list[ParserNode], list[str]], None]] = {
         BlockType.MISSION: parse_mission
     }
     if block_type in parser_map:
-        parser_map[block_type](block[1:], tags, header[0])
+        parser_map[block_type](block.children, tags)
     else:
         pass
         # raise ParseError(f"Parser not implemented for block type: {block_type}")
 
-def parse_mission(block_contents: list[tuple[int, int, str]], tags: list[str], start_line: int):
+def parse_mission(children: list[ParserNode], tags: list[str]):
     assert len(tags) == 1, f"Invalid number of tags for mission: {tags} on line {start_line}"
     pass
 
 
 if __name__ == "__main__":
-    res = parse("../data/human/kestrel.txt")
-    print(res)
-    print(res[0])
-    print(res[0].children[0])
-    print(res[0].children[4])
-    print(res[0].children[4].children[0])
-    print(res[0].children[4].children[0].children[0])
-    print(res[0].children[4].children[0].children[1])
+    parse("../data/human/kestrel.txt")
