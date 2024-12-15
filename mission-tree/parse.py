@@ -31,7 +31,7 @@ def preprocess_lines(
     """
     data: list[tuple[int, int, str]] = []
     for i, line in enumerate(lines):
-        if line.startswith("#") or line.strip() == "":
+        if line.strip().startswith("#") or line.strip() == "":
             continue
         num_tabs = 0
         for s in line:
@@ -88,6 +88,9 @@ class ParserNode:
         self.parent = parent
         self.depth = depth
         assert all([child.depth == depth-1 for child in children]), "All children must have 1 less depth"
+    
+    def __str__(self) -> str:
+        return f"<ParserNode: {self.line_data} [{len(self.children)}]>"
 
 def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
     """
@@ -95,7 +98,6 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
 
     Returns a tree of ParserNodes
     """
-    block_type, tags = parse_block_header(block[0])
     root = ParserNode((block[0][0], block[0][2]), [], block[0][1])
     current_node = root
     current_depth = 1
@@ -110,6 +112,7 @@ def parse_block_to_nodes(block: list[tuple[int, int, str]]) -> ParserNode:
                 current_node = current_node.parent
         current_node.children.append(ParserNode((line_number, line_text), [], num_tabs, parent=current_node))
         current_depth = num_tabs
+    return root
 
 
 
@@ -135,4 +138,11 @@ def parse_mission(block_contents: list[tuple[int, int, str]], tags: list[str], s
 
 
 if __name__ == "__main__":
-    parse("../data/human/kestrel.txt")
+    res = parse("../data/human/kestrel.txt")
+    print(res)
+    print(res[0])
+    print(res[0].children[0])
+    print(res[0].children[4])
+    print(res[0].children[4].children[0])
+    print(res[0].children[4].children[0].children[0])
+    print(res[0].children[4].children[0].children[1])
