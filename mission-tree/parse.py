@@ -145,12 +145,13 @@ def parse_mission(children: list[ParserNode], tags: list[str], start_line: int):
         len(tags) == 1
     ), f"Invalid number of tags for mission: {tags} on line {start_line}"
     for child in children:
-        print(child)
+        field, tags = parse_line(child.line)
+        print(field, tags)
     pass
 
 
 def parse_line(line: LineText) -> tuple[str, list[str]]:
-    field = line.text.split(" ")[0]
+    field = line.text.split('"')[0].strip()
     tags = line.text.split('"')[1:]
     tags = [tag for tag in tags if tag.strip() != ""]
     return field, tags

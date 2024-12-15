@@ -90,3 +90,8 @@ class TestParse(unittest.TestCase):
         header = parse.LineText(12, 'ship "Kestrel" "Kestrel (More Weapons)"')
         parsed = parse.parse_block_header(header)
         self.assertEqual(parsed, (parse.BlockType.SHIP, ["Kestrel", "Kestrel (More Weapons)"]))
+    
+    def test_parse_line(self):
+        line = parse.LineText(7, 'on offer')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, ('on offer', []))
