@@ -133,7 +133,7 @@ def parse_node(block: ParserNode):
         BlockType, Callable[[list[ParserNode], list[str], int], Mission]
     ] = {BlockType.MISSION: parse_mission}
     if block_type in parser_map:
-        parser_map[block_type](block.children, tags, block.line.line)
+        return parser_map[block_type](block.children, tags, block.line.line)
     else:
         pass
         # raise ParseError(f"Parser not implemented for block type: {block_type}")
@@ -162,8 +162,10 @@ class ToOffer:
 
 class Mission:
     to_offer: ToOffer
+    id: str
 
-    def __init__(self):
+    def __init__(self, id: str):
+        self.id = id
         pass
 
 
@@ -180,7 +182,6 @@ def parse_on_offer(node: ParserNode) -> ToOffer:
         field, tags = parse_line(child.line)
         if field == "has":
             res.has = parse_has(child)
-        print(field, tags)
     return res
 
 
@@ -188,12 +189,11 @@ def parse_mission(children: list[ParserNode], tags: list[str], start_line: int):
     assert (
         len(tags) == 1
     ), f"Invalid number of tags for mission: {tags} on line {start_line}"
-    res = Mission()
+    res = Mission(tags[0])
     for child in children:
         field, tags = parse_line(child.line)
         if field == "to offer":
             res.to_offer = parse_on_offer(child)
-            print(res.to_offer)
         else:
             pass
 
@@ -219,7 +219,3 @@ def parse_block_header(header: LineText) -> tuple[BlockType, list[str]]:
     ], f"Invalid block type: {block_type} on line {header.line}"
     block_type = BlockType(block_type)
     return block_type, tags
-
-
-if __name__ == "__main__":
-    parse("../data/human/kestrel.txt")
