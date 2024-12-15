@@ -17,6 +17,23 @@ class BlockType(Enum):
     EVENT = "event"
     SHIP = "ship"
 
+class FieldTag(Enum):
+    DESCRIPTION = "description"
+    EVENT = "event"
+    MISSION = "mission"
+    NAME = "name"
+    ON_OFFER = "on offer"
+    SHIP = "ship"
+    SHIPYARD = "shipyard"   
+    SOURCE = "source"
+    TO_OFFER = "to offer"
+    WAYPOINT = "waypoint"
+    OR = "or"
+    AND = "and"
+    HAS = "has"
+    ON_COMPLETE = "on complete"
+    PAYMENT = "payment"
+
 
 def parse(file: str):
     with open(file, "r") as f:
@@ -160,18 +177,35 @@ class ToOffer:
         return f"<ToOffer has: {self.has}>"
 
 
+class OnComplete:
+
+    def __init__(self):
+        pass
+
+    def __str__(self) -> str:
+        return f"<OnComplete>"
+
+
+class Payment:
+
+    amount: int
+
+    def __init__(self, amount: int):
+        self.amount = amount
+
+
 class Mission:
     to_offer: ToOffer
     id: str
+    on_complete: Optional[OnComplete]
 
     def __init__(self, id: str):
         self.id = id
-        pass
 
 
 def parse_has(node: ParserNode) -> Has:
     field, tags = parse_line(node.line)
-    assert field == "has"
+    assert field == FieldTag.HAS
     assert len(tags) == 1
     return Has(tags[0])
 
@@ -180,8 +214,18 @@ def parse_on_offer(node: ParserNode) -> ToOffer:
     res = ToOffer()
     for child in node.children:
         field, tags = parse_line(child.line)
-        if field == "has":
+        if field == FieldTag.HAS:
             res.has = parse_has(child)
+    return res
+
+
+def parse_on_complete(node: ParserNode) -> OnComplete:
+    res = OnComplete()
+    for child in node.children:
+        field, tags = parse_line(child.line)
+        print(field, tags)
+        if field == FieldTag.PAYMENT:
+            pass
     return res
 
 
@@ -192,19 +236,26 @@ def parse_mission(children: list[ParserNode], tags: list[str], start_line: int):
     res = Mission(tags[0])
     for child in children:
         field, tags = parse_line(child.line)
-        if field == "to offer":
+        if field == FieldTag.TO_OFFER:
             res.to_offer = parse_on_offer(child)
+        elif field == FieldTag.ON_COMPLETE:
+            res.on_complete = parse_on_complete(child)
         else:
             pass
 
     return res
 
 
-def parse_line(line: LineText) -> tuple[str, list[str]]:
-    field = line.text.split('"')[0].strip()
+def parse_line(line: LineText) -> tuple[Optional[FieldTag], list[str]]:
+    for tag in FieldTag:
+        if line.text.startswith(tag.value):
+            field = tag
+            tags = line.text.split('"')[1:]
+            tags = [tag for tag in tags if tag.strip() != ""]
+            return field, tags 
     tags = line.text.split('"')[1:]
     tags = [tag for tag in tags if tag.strip() != ""]
-    return field, tags
+    return None, tags
 
 
 def parse_block_header(header: LineText) -> tuple[BlockType, list[str]]:
@@ -214,8 +265,6 @@ def parse_block_header(header: LineText) -> tuple[BlockType, list[str]]:
     or block_type "block_name" "block_description"
     """
     block_type, tags = parse_line(header)
-    assert block_type in [
-        b.value for b in BlockType
-    ], f"Invalid block type: {block_type} on line {header.line}"
-    block_type = BlockType(block_type)
+    assert isinstance(block_type, FieldTag)
+    block_type = BlockType(block_type.value)
     return block_type, tags

@@ -1,9 +1,9 @@
 digraph G {
-"kestrel: more bays" [shape=box,fillcolor=lightblue,style=filled]
+"kestrel available" [shape=box,fillcolor=lightblue,style=filled]
 "kestrel: more weapons" [shape=box,fillcolor=lightblue,style=filled]
 "kestrel: more shields" [shape=box,fillcolor=lightblue,style=filled]
+"kestrel: more bays" [shape=box,fillcolor=lightblue,style=filled]
 "kestrel: more engines" [shape=box,fillcolor=lightblue,style=filled]
-"kestrel available" [shape=box,fillcolor=lightblue,style=filled]
 "Kestrel Testing" [shape=box,fillcolor=lightgreen,style=filled]
 "Kestrel: More Weapons" [shape=box,fillcolor=lightgreen,style=filled]
 "Kestrel: More Engines" [shape=box,fillcolor=lightgreen,style=filled]

@@ -1,5 +1,6 @@
 import unittest
 import parse
+from parse import FieldTag
 
 EXAMPLE = """# this is a comment
 mission "Kestrel: More Weapons"
@@ -94,4 +95,52 @@ class TestParse(unittest.TestCase):
     def test_parse_line(self):
         line = parse.LineText(7, 'on offer')
         parsed = parse.parse_line(line)
-        self.assertEqual(parsed, ('on offer', []))
+        self.assertEqual(parsed, (FieldTag.ON_OFFER, []))
+
+        line = parse.LineText(0, 'mission "Kestrel Testing"')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.MISSION, ['Kestrel Testing']))
+
+        line = parse.LineText(0, 'name "Warship Testing"')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.NAME, ['Warship Testing']))
+
+        line = parse.LineText(0, 'description "Travel to the <waypoints> system to fight and disable a prototype warship that Tarazed Corporation is testing. Do not destroy the ship, or you will lose your payment and your opportunity to buy one."')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.DESCRIPTION, ['Travel to the <waypoints> system to fight and disable a prototype warship that Tarazed Corporation is testing. Do not destroy the ship, or you will lose your payment and your opportunity to buy one.']))
+
+        line = parse.LineText(0, 'source "Wayfarer"')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.SOURCE, ['Wayfarer']))
+
+        line = parse.LineText(0, 'waypoint "Umbral"')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.WAYPOINT, ['Umbral']))
+
+        line = parse.LineText(0, 'to offer')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.TO_OFFER, []))
+
+        line = parse.LineText(0, 'or')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.OR, []))
+
+        line = parse.LineText(0, '"combat rating" > 6000')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (None, ['"combat rating" > 6000']))
+
+        line = parse.LineText(0, 'and')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.AND, []))
+
+        line = parse.LineText(0, '"combat rating" > 2000')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (None, ['"combat rating" > 2000']))
+
+        line = parse.LineText(0, 'has "global: unlocked kestrel"')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (FieldTag.HAS, ['global: unlocked kestrel']))
+
+        line = parse.LineText(0, '`As you are visiting one of the spaceport`')
+        parsed = parse.parse_line(line)
+        self.assertEqual(parsed, (None, ['`As you are visiting one of the spaceport`']))
