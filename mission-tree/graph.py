@@ -1,4 +1,4 @@
-from parse import Mission, Payment, Event
+from parse import Mission, Payment, Event, Action
 from io import TextIOWrapper
 
 
@@ -39,8 +39,13 @@ def visualize_missions(missions: list[Mission], output_path: str):
         for mission in missions:
             if mission.to_offer.has:
                 events.add(mission.to_offer.has.event)
-            if mission.on_complete and mission.on_complete.payment:
-                payments.add(mission.on_complete.payment)
+            if mission.on_complete:
+                if mission.on_complete.payment:
+                    payments.add(mission.on_complete.payment)
+                if mission.on_complete.conversation:
+                    for entry in mission.on_complete.conversation.entries:
+                        if isinstance(entry, Action):
+                            events.add(entry.event)
                 for event in mission.on_complete.events:
                     events.add(event)
         f.write("digraph G {\n")
@@ -62,4 +67,10 @@ def visualize_missions(missions: list[Mission], output_path: str):
                     )
                 for event in mission.on_complete.events:
                     f.write(f"{mission_fmt(mission)} -> {event_fmt(event)}\n")
+                if mission.on_complete.conversation:
+                    for entry in mission.on_complete.conversation.entries:
+                        if isinstance(entry, Action):
+                            f.write(
+                                f"{event_fmt(entry.event)} -> {mission_fmt(mission)}\n"
+                            )
         f.write("}\n")

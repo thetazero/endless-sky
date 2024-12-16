@@ -1,10 +1,14 @@
 digraph G {
-"kestrel: more shields" [shape=ellipse,fillcolor=lightblue,style=filled]
-"kestrel: more engines" [shape=ellipse,fillcolor=lightblue,style=filled]
+"'global: unlocked kestrel' ++" [shape=ellipse,fillcolor=lightblue,style=filled]
 "kestrel: more weapons" [shape=ellipse,fillcolor=lightblue,style=filled]
 "kestrel available" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more shields" [shape=ellipse,fillcolor=lightblue,style=filled]
 "kestrel: more bays" [shape=ellipse,fillcolor=lightblue,style=filled]
-"'global: unlocked kestrel' ++" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more weapons" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more bays" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more shields" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more engines" [shape=ellipse,fillcolor=lightblue,style=filled]
+"kestrel: more engines" [shape=ellipse,fillcolor=lightblue,style=filled]
 "Kestrel Testing" [shape=box,fillcolor=lightgreen,style=filled]
 "Kestrel: More Weapons" [shape=box,fillcolor=lightgreen,style=filled]
 "Kestrel: More Engines" [shape=box,fillcolor=lightgreen,style=filled]
@@ -14,6 +18,10 @@ digraph G {
 "payment:2000000" [shape=oval,fillcolor=lightpink,style=filled]
 "Kestrel Testing" -> "payment:2000000"
 "Kestrel Testing" -> "'global: unlocked kestrel' ++"
+"kestrel: more weapons" -> "Kestrel Testing"
+"kestrel: more engines" -> "Kestrel Testing"
+"kestrel: more shields" -> "Kestrel Testing"
+"kestrel: more bays" -> "Kestrel Testing"
 "kestrel: more weapons" -> "Kestrel: More Weapons"
 "kestrel: more engines" -> "Kestrel: More Engines"
 "kestrel: more shields" -> "Kestrel: More Shields"

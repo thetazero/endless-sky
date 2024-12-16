@@ -35,6 +35,9 @@ class FieldTag(Enum):
     ON_COMPLETE = "on complete"
     PAYMENT = "payment"
     CONVERSATION = "conversation"
+    CHOICE = "choice"
+    ACTION = "action"
+    SET = "set"
 
 
 def parse(file: str):
@@ -178,6 +181,45 @@ class Has:
         return f"<Has: {self.event}>"
 
 
+class Action:
+    event: Event
+
+    def __init__(self, event: Event):
+        self.event = event
+
+    @classmethod
+    def parse(cls, node: ParserNode) -> "Action":
+        field, tags = parse_line(node.line)
+        assert field == FieldTag.ACTION
+        assert len(tags) == 0
+        for child in node.children:
+            field, tags = parse_line(child.line)
+            if field == FieldTag.SET:
+                return Action(Event(tags[0]))
+        raise ParseError("Action must have a set field")
+
+
+class Conversation:
+    entries: list = []
+    tag: FieldTag = FieldTag.CONVERSATION
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def parse(cls, node: ParserNode) -> "Conversation":
+        field, tags = parse_line(node.line)
+        assert field == FieldTag.CONVERSATION
+        assert len(tags) == 0
+        res = Conversation()
+        for child in node.children:
+            field, tags = parse_line(child.line)
+            if field == FieldTag.ACTION:
+                res.entries.append(Action.parse(child))
+            res.entries.append(child.line.text)
+        return res
+
+
 class ToOffer:
     has: Optional[Has]
 
@@ -198,8 +240,9 @@ class Payment:
 
 
 class OnComplete:
-    payment: Optional[Payment]
+    payment: Optional[Payment] = None
     events: list[Event] = []
+    conversation: Optional[Conversation] = None
 
     def __init__(self):
         pass
@@ -248,6 +291,8 @@ def parse_on_complete(node: ParserNode) -> OnComplete:
         field, tags = parse_line(child.line)
         if field == FieldTag.PAYMENT:
             res.payment = parse_payment(child)
+        elif field == FieldTag.CONVERSATION:
+            res.conversation = Conversation.parse(child)
         elif field == None:
             res.events.append(Event(tags[0]))
     return res
