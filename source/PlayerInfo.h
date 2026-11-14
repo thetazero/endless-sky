@@ -280,6 +280,8 @@ public:
 	void AcceptJob(const Mission &mission, UI &ui);
 	// Check to see if there is any mission to offer right now.
 	Mission *MissionToOffer(Mission::Location location);
+	// Check whether any mission could be offered right now in the given location.
+	bool HasMissionToOffer(Mission::Location location) const;
 	Mission *BoardingMission(const std::shared_ptr<Ship> &ship);
 	void CreateEnteringMissions();
 	void CreateTransitionMissions();

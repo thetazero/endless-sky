@@ -1687,6 +1687,12 @@ interface "planet"
 		size 18
 		align left
 		pad 10 0
+	visible if "port has mission"
+	pointer
+		center -285 310
+		dimensions 12 20
+		"orientation angle" 270
+		color "available job"
 	
 	visible if "has shipyard"
 	sprite "ui/planet dialog button"
@@ -1792,6 +1798,12 @@ interface "planet (small screen)"
 		size 18
 		align left
 		pad 10 0
+	visible if "port has mission"
+	pointer
+		center -345 310
+		dimensions 12 20
+		"orientation angle" 270
+		color "available job"
 	
 	visible if "has shipyard"
 	sprite "ui/planet dialog button"

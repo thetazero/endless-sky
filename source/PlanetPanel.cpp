@@ -225,6 +225,10 @@ void PlanetPanel::Draw()
 		{
 			info.SetCondition("has port");
 			info.SetString("port name", port.DisplayName());
+			// Let the player know when someone in the spaceport has a mission for them.
+			if(port.HasService(Port::ServicesType::OffersMissions)
+					&& player.HasMissionToOffer(Mission::SPACEPORT))
+				info.SetCondition("port has mission");
 		}
 
 		if(hasShipyard)
