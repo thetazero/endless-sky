@@ -1688,10 +1688,12 @@ interface "planet"
 		align left
 		pad 10 0
 	visible if "port has mission"
-	pointer
-		center -285 310
-		dimensions 12 20
-		"orientation angle" 270
+	label "!"
+		center -340 310
+		dimensions 140 40
+		size 18
+		align right
+		pad 12 0
 		color "available job"
 	
 	visible if "has shipyard"
@@ -1799,10 +1801,12 @@ interface "planet (small screen)"
 		align left
 		pad 10 0
 	visible if "port has mission"
-	pointer
-		center -345 310
-		dimensions 12 20
-		"orientation angle" 270
+	label "!"
+		center -400 310
+		dimensions 140 40
+		size 18
+		align right
+		pad 12 0
 		color "available job"
 	
 	visible if "has shipyard"
