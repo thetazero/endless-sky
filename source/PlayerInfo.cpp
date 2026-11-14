@@ -2594,6 +2594,21 @@ Mission *PlayerInfo::MissionToOffer(Mission::Location location)
 
 
 
+// Check whether any mission could be offered right now in the given location,
+// without changing the order of the available missions.
+bool PlayerInfo::HasMissionToOffer(Mission::Location location) const
+{
+	if(ships.empty())
+		return false;
+
+	for(const Mission &mission : availableMissions)
+		if(mission.IsAtLocation(location) && mission.CanOffer(*this) && mission.CanAccept(*this))
+			return true;
+	return false;
+}
+
+
+
 // Check if any of the game's missions can be offered from this ship, given its
 // relationship with the player. If none offer, return nullptr.
 Mission *PlayerInfo::BoardingMission(const shared_ptr<Ship> &ship)
